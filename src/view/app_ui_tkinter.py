@@ -5,6 +5,8 @@ from datetime import datetime
 import json
 from src.models.task import Task
 from src.models.sub_task import SubTask
+from src.controllers.tasks_controller import TasksController
+
 
 class TodoApp(ctk.CTk):
     def __init__(self):
@@ -12,10 +14,8 @@ class TodoApp(ctk.CTk):
         self.title("Todo App - CustomTkinter")
         self.geometry("800x500")
 
-        # Sample tasks with subtasks
-        self.tasks = [Task(f"Task {i+1}", "Description", "2023-12-31") for i in range(5)]
-        for task in self.tasks:
-            task.add_subtask(SubTask(f"Subtask of {task.title}", "Subtask Description", "2023-12-31"))
+        self.tasks_controller = TasksController("../../data/tasks.json")
+        self.tasks = self.tasks_controller.tasks
 
         # Layout configuration
         self.grid_columnconfigure(1, weight=1)
@@ -30,7 +30,6 @@ class TodoApp(ctk.CTk):
         self.create_left_panel_controls()
         self.create_task_list()
 
-
     def create_left_panel_controls(self):
         add_task_button = ctk.CTkButton(self.left_panel, text="Add Task", command=self.open_add_task_window)
         add_task_button.pack(pady=(0, 10))
@@ -40,8 +39,10 @@ class TodoApp(ctk.CTk):
 
         self.filter_var = ctk.StringVar(value="all")
         all_tasks_rb = ctk.CTkRadioButton(self.left_panel, text="All tasks", variable=self.filter_var, value="all")
-        in_progress_rb = ctk.CTkRadioButton(self.left_panel, text="In Progress", variable=self.filter_var, value="in_progress")
-        completed_rb = ctk.CTkRadioButton(self.left_panel, text="Completed", variable=self.filter_var, value="completed")
+        in_progress_rb = ctk.CTkRadioButton(self.left_panel, text="In Progress", variable=self.filter_var,
+                                            value="in_progress")
+        completed_rb = ctk.CTkRadioButton(self.left_panel, text="Completed", variable=self.filter_var,
+                                          value="completed")
 
         all_tasks_rb.pack()
         in_progress_rb.pack(pady=(5, 0))
@@ -72,11 +73,12 @@ class TodoApp(ctk.CTk):
                 self.task_mapping[listbox_index] = subtask
                 listbox_index += 1
 
-    def open_add_task_window(self, task=None, is_subtask=False):
+    def open_add_task_window(self, task=None, is_subtask=False, parent_task=None):
         def save():
             title = title_entry.get()
             description = description_entry.get()
             due_date = due_date_entry.get()
+
             if not title:
                 messagebox.showerror("Error", "Title is required.")
                 return
@@ -88,14 +90,25 @@ class TodoApp(ctk.CTk):
                 messagebox.showerror("Error", "Invalid date format. Use YYYY-MM-DD.")
                 return
 
-            if task and not is_subtask:
-                task.title = title
-                task.description = description
-                task.due_date = due_date
-            elif task and is_subtask:
-                task.add_subtask(SubTask(title, description, due_date))
+            if is_subtask:
+                # Edit or add subtask
+                if task and parent_task:  # Editing an existing subtask
+                    for st in parent_task.subtasks:
+                        if st.title == task.title:  # Identify the subtask by title
+                            st.title = title
+                            st.description = description
+                            st.due_date = due_date
+                            break
+                else:  # Adding a new subtask
+                    task.add_subtask(SubTask(title, description, due_date))
+                self.tasks_controller.save_tasks(self.tasks)
             else:
-                self.tasks.append(Task(title, description, due_date))
+                # Edit or add task
+                if task:  # Editing an existing task
+                    self.tasks_controller.edit_task(task.title, title, description, due_date)
+                else:  # Adding a new task
+                    self.tasks_controller.add_task(Task(title, description, due_date))
+
             task_window.destroy()
             self.refresh_task_list()
 
@@ -103,6 +116,20 @@ class TodoApp(ctk.CTk):
         task_window.title("Add/Edit Task")
         task_window.geometry("300x300")
 
+        # Position the new window at the center of the main window
+        window_width = 300
+        window_height = 300
+        position_right = int(self.winfo_screenwidth() / 2 - window_width / 2)
+        position_down = int(self.winfo_screenheight() / 2 - window_height / 2)
+        task_window.geometry("+{}+{}".format(position_right, position_down))
+
+        # Set the new window as a transient window of the main application window
+        task_window.transient(self)
+
+        # Make the new window modal
+        task_window.grab_set()
+
+        # Entry fields for task/subtask details
         ctk.CTkLabel(task_window, text="Title:").pack(pady=(10, 5))
         title_entry = ctk.CTkEntry(task_window)
         title_entry.pack()
@@ -115,6 +142,7 @@ class TodoApp(ctk.CTk):
         due_date_entry = ctk.CTkEntry(task_window)
         due_date_entry.pack()
 
+        # Pre-fill fields if editing an existing task or subtask
         if task:
             title_entry.insert(0, task.title)
             description_entry.insert(0, task.description if task.description else "")
@@ -127,25 +155,56 @@ class TodoApp(ctk.CTk):
         if selection:
             index = selection[0]
             if index in self.task_mapping:
-                selected_task = self.task_mapping[index]
-                self.open_add_task_window(selected_task)
+                selected_item = self.task_mapping[index]
+                if isinstance(selected_item, SubTask):
+                    # Find the parent task of the selected subtask
+                    for task in self.tasks:
+                        if selected_item in task.subtasks:
+                            parent_task = task
+                            break
+                    self.open_add_task_window(task=selected_item, is_subtask=True, parent_task=parent_task)
+                else:
+                    # Edit a main task
+                    self.open_add_task_window(task=selected_item, is_subtask=False)
 
-    def on_task_right_click(self, event):
-        def add_subtask():
-            selected_task = self.tasks[selection[0]]
-            self.open_add_task_window(selected_task, is_subtask=True)
-
-        def delete_task():
-            if selection:
-                del self.tasks[selection[0]]
-                self.refresh_task_list()
-
+    def delete_task(self):
         selection = self.task_listbox.curselection()
         if selection:
+            index = selection[0]
+            if index in self.task_mapping:
+                selected_item = self.task_mapping[index]
+
+                if isinstance(selected_item, Task):
+                    self.tasks_controller.remove_task(selected_item.title)
+                elif isinstance(selected_item, SubTask):
+                    for task in self.tasks:
+                        if selected_item in task.subtasks:
+                            task.subtasks.remove(selected_item)
+                            break
+                    self.tasks_controller.save_tasks(self.tasks)
+
+                self.refresh_task_list()
+
+    def on_task_right_click(self, event):
+        try:
+            self.task_listbox.selection_clear(0, tk.END)
+            selection = self.task_listbox.nearest(event.y)
+            self.task_listbox.selection_set(selection)
+            selected_item = self.task_mapping.get(selection)
+
             menu = Menu(self, tearoff=0)
-            menu.add_command(label="Add Subtask", command=add_subtask)
-            menu.add_command(label="Delete", command=delete_task)
+            menu.add_command(label="View/Edit", command=lambda: self.open_add_task_window(selected_item))
+            menu.add_command(label="Delete", command=self.delete_task)
+
+            if isinstance(selected_item, Task):  # Add subtask option only for main tasks
+                menu.add_command(label="Add Subtask",
+                                 command=lambda: self.open_add_task_window(selected_item, is_subtask=True))
+                menu.add_command(label="Complete", command=lambda: self.complete_task(selected_item))
+
             menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+
 
 if __name__ == "__main__":
     app = TodoApp()
