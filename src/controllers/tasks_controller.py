@@ -1,4 +1,3 @@
-from src.models.task import Task
 from src.database.json_loader import JsonLoader
 
 
