@@ -2,16 +2,14 @@ import tkinter as tk
 from tkinter import simpledialog, messagebox, Menu
 import customtkinter as ctk
 from datetime import datetime
-import json
 from src.models.task import Task
 from src.models.sub_task import SubTask
 from src.controllers.tasks_controller import TasksController
 
-
 class TodoApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Todo App - CustomTkinter")
+        self.title("Todo App")
         self.geometry("800x500")
 
         self.tasks_controller = TasksController("../../data/tasks.json")
@@ -175,7 +173,8 @@ class TodoApp(ctk.CTk):
                 selected_item = self.task_mapping[index]
 
                 if isinstance(selected_item, Task):
-                    self.tasks_controller.remove_task(selected_item.title)
+                    self.tasks = self.tasks_controller.remove_task(selected_item.title)
+
                 elif isinstance(selected_item, SubTask):
                     for task in self.tasks:
                         if selected_item in task.subtasks:

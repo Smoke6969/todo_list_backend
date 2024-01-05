@@ -13,6 +13,11 @@ class TasksController:
     def remove_task(self, title):
         self.tasks = [task for task in self.tasks if task.title != title]
         self.json_loader.save_tasks(self.tasks)
+        return self.tasks
+
+    def save_tasks(self, tasks):
+        self.tasks = tasks
+        self.json_loader.save_tasks(self.tasks)
 
     def edit_task(self, original_title, new_title=None, new_description=None, new_due_date=None):
         for task in self.tasks:
