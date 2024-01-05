@@ -16,7 +16,7 @@ class JsonLoader:
             for task_data in data:
                 task = Task(task_data['title'], task_data['description'], task_data.get('due_date'))
                 for subtask_data in task_data['subtasks']:
-                    subtask = SubTask(subtask_data['title'], task_data['description'], subtask_data.get('due_date'))
+                    subtask = SubTask(subtask_data['title'], subtask_data['description'], subtask_data.get('due_date'))
                     task.add_subtask(subtask)
                 tasks.append(task)
             return tasks

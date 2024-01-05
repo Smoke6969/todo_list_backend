@@ -140,8 +140,10 @@ class TodoApp(ctk.CTk):
         due_date_entry = ctk.CTkEntry(task_window)
         due_date_entry.pack()
 
+        if task and is_subtask and not parent_task:
+            pass
         # Pre-fill fields if editing an existing task or subtask
-        if task:
+        elif task:
             title_entry.insert(0, task.title)
             description_entry.insert(0, task.description if task.description else "")
             due_date_entry.insert(0, task.due_date if task.due_date else "")
