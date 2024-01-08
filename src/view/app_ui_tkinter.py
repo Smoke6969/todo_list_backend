@@ -5,6 +5,9 @@ from datetime import datetime
 from src.models.task import Task
 from src.models.sub_task import SubTask
 from src.controllers.tasks_controller import TasksController
+from tkcalendar import DateEntry
+import customtkinter as ctk
+
 
 class TodoApp(ctk.CTk):
     def __init__(self):
@@ -32,19 +35,19 @@ class TodoApp(ctk.CTk):
         add_task_button = ctk.CTkButton(self.left_panel, text="Add Task", command=self.open_add_task_window)
         add_task_button.pack(pady=(0, 10))
 
-        filter_label = ctk.CTkLabel(self.left_panel, text="Show:")
-        filter_label.pack(pady=(10, 5))
+        # filter_label = ctk.CTkLabel(self.left_panel, text="Show:")
+        # filter_label.pack(pady=(10, 5))
+        #
+        # self.filter_var = ctk.StringVar(value="all")
+        # all_tasks_rb = ctk.CTkRadioButton(self.left_panel, text="All tasks", variable=self.filter_var, value="all")
+        # in_progress_rb = ctk.CTkRadioButton(self.left_panel, text="In Progress", variable=self.filter_var,
+        #                                     value="in_progress")
+        # completed_rb = ctk.CTkRadioButton(self.left_panel, text="Completed", variable=self.filter_var,
+        #                                   value="completed")
 
-        self.filter_var = ctk.StringVar(value="all")
-        all_tasks_rb = ctk.CTkRadioButton(self.left_panel, text="All tasks", variable=self.filter_var, value="all")
-        in_progress_rb = ctk.CTkRadioButton(self.left_panel, text="In Progress", variable=self.filter_var,
-                                            value="in_progress")
-        completed_rb = ctk.CTkRadioButton(self.left_panel, text="Completed", variable=self.filter_var,
-                                          value="completed")
-
-        all_tasks_rb.pack()
-        in_progress_rb.pack(pady=(5, 0))
-        completed_rb.pack(pady=(5, 0))
+        # all_tasks_rb.pack()
+        # in_progress_rb.pack(pady=(5, 0))
+        # completed_rb.pack(pady=(5, 0))
 
     def create_task_list(self):
         self.task_listbox = tk.Listbox(self.right_panel)
@@ -59,15 +62,14 @@ class TodoApp(ctk.CTk):
         listbox_index = 0
 
         for task in self.tasks:
-            display_text = f"{task.title} - Due: {task.due_date}"
+            display_text = f"{task.title} - Due: {task.due_date} {'Completed' if task.completed else ''}"
             self.task_listbox.insert(tk.END, display_text)
             self.task_mapping[listbox_index] = task
             listbox_index += 1
 
             for subtask in task.subtasks:
-                subtask_text = f"    → {subtask.title} - Due: {subtask.due_date}"
+                subtask_text = f"    → {subtask.title} - Due: {subtask.due_date} {'Completed' if subtask.completed else ''}"
                 self.task_listbox.insert(tk.END, subtask_text)
-                # For simplicity, subtasks are also mapped, even though they're not editable here
                 self.task_mapping[listbox_index] = subtask
                 listbox_index += 1
 
@@ -137,7 +139,7 @@ class TodoApp(ctk.CTk):
         description_entry.pack()
 
         ctk.CTkLabel(task_window, text="Due Date (YYYY-MM-DD):").pack(pady=(10, 5))
-        due_date_entry = ctk.CTkEntry(task_window)
+        due_date_entry = DateEntry(task_window, date_pattern='y-mm-dd', width=12)
         due_date_entry.pack()
 
         if task and is_subtask and not parent_task:
@@ -186,6 +188,11 @@ class TodoApp(ctk.CTk):
 
                 self.refresh_task_list()
 
+    def complete_task(self, selected_item):
+        selected_item.completed = True
+        self.tasks_controller.save_tasks(self.tasks)
+        self.refresh_task_list()
+
     def on_task_right_click(self, event):
         try:
             self.task_listbox.selection_clear(0, tk.END)
@@ -196,11 +203,11 @@ class TodoApp(ctk.CTk):
             menu = Menu(self, tearoff=0)
             menu.add_command(label="View/Edit", command=lambda: self.open_add_task_window(selected_item))
             menu.add_command(label="Delete", command=self.delete_task)
+            menu.add_command(label="Complete", command=lambda: self.complete_task(selected_item))
 
             if isinstance(selected_item, Task):  # Add subtask option only for main tasks
                 menu.add_command(label="Add Subtask",
                                  command=lambda: self.open_add_task_window(selected_item, is_subtask=True))
-                menu.add_command(label="Complete", command=lambda: self.complete_task(selected_item))
 
             menu.tk_popup(event.x_root, event.y_root)
         finally:

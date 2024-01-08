@@ -1,113 +1,23 @@
 [
     {
-        "title": "Test task changed3",
-        "description": "changed description3",
-        "due_date": "2023-10-03",
-        "completed": false,
+        "title": "task1",
+        "description": "desc`",
+        "due_date": "1014-10-10",
+        "completed": true,
+        "subtasks": []
+    },
+    {
+        "title": "task22",
+        "description": "des22",
+        "due_date": "2024-10-01",
+        "completed": true,
         "subtasks": [
             {
-                "title": "subchange",
-                "description": null,
-                "due_date": null,
-                "completed": false
-            },
-            {
-                "title": "asdasdasd",
-                "description": null,
-                "due_date": null,
-                "completed": false
-            },
-            {
-                "title": "test sub 2",
-                "description": null,
-                "due_date": null,
-                "completed": false
-            },
-            {
-                "title": "Test task changed3",
-                "description": null,
-                "due_date": null,
-                "completed": false
-            },
-            {
-                "title": "new sub",
-                "description": null,
-                "due_date": null,
-                "completed": false
-            },
-            {
-                "title": "new new sub",
-                "description": "2023-10-03",
-                "due_date": null,
-                "completed": false
-            },
-            {
-                "title": "new shit",
-                "description": "changed description3",
-                "due_date": "2023-10-03",
-                "completed": false
+                "title": "testsub",
+                "description": "qweqweqwe",
+                "due_date": "2023-10-10",
+                "completed": true
             }
         ]
-    },
-    {
-        "title": "Test task 2",
-        "description": "Test task 2 description",
-        "due_date": null,
-        "completed": false,
-        "subtasks": [
-            {
-                "title": "Test subtask 2-1",
-                "description": null,
-                "due_date": null,
-                "completed": false
-            },
-            {
-                "title": "Test subtask 2-2",
-                "description": null,
-                "due_date": null,
-                "completed": false
-            },
-            {
-                "title": "Test subtask 2-4",
-                "description": null,
-                "due_date": null,
-                "completed": false
-            }
-        ]
-    },
-    {
-        "title": "test",
-        "description": "werwer",
-        "due_date": "2022-10-10",
-        "completed": false,
-        "subtasks": []
-    },
-    {
-        "title": "sdfsdfsdf",
-        "description": "sdfsdfsdf",
-        "due_date": "2020-10-10",
-        "completed": false,
-        "subtasks": []
-    },
-    {
-        "title": "sdfsdfsdf",
-        "description": "sdfsdfsdf",
-        "due_date": "2020-10-10",
-        "completed": false,
-        "subtasks": []
-    },
-    {
-        "title": "qqqqqqqqqqqq",
-        "description": "qqqqqqqqqqq",
-        "due_date": "2020-10-10",
-        "completed": false,
-        "subtasks": []
-    },
-    {
-        "title": "qqqqqqqqqqqq",
-        "description": "qqqqqqqqqqq",
-        "due_date": "2020-10-10",
-        "completed": false,
-        "subtasks": []
     }
 ]

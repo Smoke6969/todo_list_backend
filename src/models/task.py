@@ -1,9 +1,9 @@
 class Task:
-    def __init__(self, title, description, due_date=None):
+    def __init__(self, title, description, due_date=None, completed=False):
         self.title = title
         self.description = description
         self.due_date = due_date
-        self.completed = False
+        self.completed = completed
         self.subtasks = []
 
     def add_subtask(self, subtask):
